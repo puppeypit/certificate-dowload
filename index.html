@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+      *, *::before, *::after { box-sizing: border-box; }
+      html { font-size: 16px; -webkit-text-size-adjust: 100%; }
+      html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow-x: hidden; }
+      body { font-family: 'Sarabun', sans-serif; }
+      .loader { border-top-color: #ffffff; animation: spinner 1.5s linear infinite; }
+      @keyframes spinner { to { transform: rotate(360deg); } }
+      .swal-certificate { max-width: 900px !important; }
+    </style>
+  </head>
+  <body class="bg-gradient-to-br from-sky-100 to-blue-200">
+    <div class="w-screen h-screen flex items-center justify-center p-4">
+      <div class="w-full max-w-sm p-6 space-y-5 bg-white rounded-2xl shadow-xl">
+        <div class="flex justify-center"><img src="https://lh3.googleusercontent.com/d/10b6_OZl2cJMOJ6qbkzHsMtpNTblWtqfU" alt="Logo" class="w-[180px]"></div>
+        <div class="text-center">
+          <h2 class="text-xl font-bold text-gray-800">ยินดีต้อนรับ</h2>
+          <p class="mt-1 text-base text-gray-500">เข้าสู่ระบบเพื่อดาวน์โหลด</p>
+        </div>
+        <form id="loginForm" class="space-y-5">
+          <div>
+            <label for="membershipId" class="text-sm font-medium text-gray-700">เลขสมาชิก</label>
+            <div class="mt-1 relative rounded-md shadow-sm">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/></svg></div>
+              <input id="membershipId" name="membershipId" type="text" inputmode="numeric" maxlength="8" required oninput="this.value=this.value.replace(/[^0-9]/g,'')" class="w-full pl-10 pr-3 py-3 text-base border border-gray-300 rounded-md" placeholder="เลขสมาชิก 8 หลัก">
+            </div>
+          </div>
+          <div>
+            <label for="nationalId" class="text-sm font-medium text-gray-700">เลขบัตรประชาชน</label>
+            <div class="mt-1 relative rounded-md shadow-sm">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5 text-gray-400">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z" /></svg>
+              </div>
+              <input id="nationalId" name="nationalId" type="password" inputmode="numeric" maxlength="13" required oninput="this.value=this.value.replace(/[^0-9]/g,'')" class="w-full pl-10 pr-3 py-3 text-base border border-gray-300 rounded-md" placeholder="เลขบัตรประชาชน 13 หลัก">
+            </div>
+          </div>
+          <div>
+            <button type="submit" id="submitButton" class="w-full flex justify-center items-center bg-sky-600 text-white p-3 rounded-md font-semibold text-base">
+              <span id="buttonText">เข้าสู่ระบบ</span>
+              <div id="loader" class="hidden loader ease-linear rounded-full border-2 border-t-2 border-gray-200 h-5 w-5"></div>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      // [สำคัญ] นำ URL ของสคริปต์ตัวล่าสุดมาวางที่นี่
+      const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzXhmnjRO0eIRkeXsFSD-1zW-WEVOc03psszAI4bm9X56OjAP2UC4nW-vyD6Qr-k-iOKQ/exec"; 
+
+      const loginForm = document.getElementById('loginForm');
+      const submitButton = document.getElementById('submitButton');
+      const buttonText = document.getElementById('buttonText');
+      const loader = document.getElementById('loader');
+
+      loginForm.addEventListener('submit', function(e){
+        e.preventDefault();
+        setLoading(true);
+
+        const membershipId = document.getElementById('membershipId').value.trim();
+        const nationalId   = document.getElementById('nationalId').value.trim();
+
+        Swal.fire({ title: 'กำลังประมวลผลข้อมูล', html: 'กรุณารอสักครู่...', allowOutsideClick: false, showConfirmButton: false, didOpen: () => Swal.showLoading() });
+
+        fetch(SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'userLogin', payload: { membershipId, nationalId } })
+        })
+        .then(response => response.json())
+        .then(res => {
+          if (res.status === 'success') {
+            Swal.update({ title: 'กำลังสร้างเกียรติบัตร' });
+            return fetch(SCRIPT_URL, {
+              method: 'POST',
+              body: JSON.stringify({ action: 'createSlide', payload: { childName: res.childName, grade: res.grade } })
+            });
+          } else {
+            throw new Error(res.message || 'ข้อมูลไม่ถูกต้อง');
+          }
+        })
+        .then(response => response.json())
+        .then(slideRes => {
+          if (slideRes.status === 'success') {
+            showSlidePopup(slideRes);
+          } else {
+            throw new Error(slideRes.message || 'สร้างสไลด์ไม่สำเร็จ');
+          }
+        })
+        .catch(err => {
+          Swal.fire({ title: 'เกิดข้อผิดพลาด', text: err.message, icon: 'error', confirmButtonText: 'ลองอีกครั้ง' });
+          setLoading(false);
+        });
+      });
+
+      function showSlidePopup(r) {
+        Swal.fire({
+          title: 'ตัวอย่างเกียรติบัตร',
+          html: `<div class="space-y-4"><img src="${r.pngUrl}" style="max-width:100%;height:auto;border-radius:12px;"/><div class="flex justify-center"><a href="${r.pdfUrl}" target="_blank" download="เกียรติบัตร.pdf" class="px-4 py-2 rounded bg-sky-600 text-white">ดาวน์โหลด PDF</a></div></div>`,
+          width: '95%',
+          customClass: { popup: 'swal-certificate' },
+          confirmButtonText: 'ปิด'
+        });
+        loginForm.reset();
+        setLoading(false);
+      }
+
+      function setLoading(isLoading) {
+        submitButton.disabled = isLoading;
+        if (isLoading) {
+          buttonText.classList.add('hidden');
+          loader.classList.remove('hidden');
+        } else {
+          buttonText.classList.remove('hidden');
+          loader.classList.add('hidden');
+        }
+      }
+    </script>
+  </body>
+</html>
